@@ -1,0 +1,162 @@
+const PointTarget = ReactPoint.PointTarget
+
+class CalculatorKey extends React.Component {
+  render() {
+    const { onPress, className, ...props } = this.props
+    
+    return (
+      <PointTarget onPoint={onPress}>
+        <button className={`calculator-key ${className}`} {...props}/>
+      </PointTarget>
+    )
+  }
+}
+
+const CalculatorOperations = {
+  '^': (prevValue, nextValue) => Math.pow(prevValue, nextValue),
+  '/': (prevValue, nextValue) => prevValue / nextValue,
+  '*': (prevValue, nextValue) => prevValue * nextValue,
+  '+': (prevValue, nextValue) => prevValue + nextValue,
+  '-': (prevValue, nextValue) => prevValue - nextValue,
+  '=': (prevValue, nextValue) => nextValue
+}
+
+class Calculator extends React.Component {
+  state = {
+    value: null,
+    displayValue: '0',
+    operator: null,
+    operandClicked: false
+  };
+  
+  clearAll() {
+    this.setState({
+      value: null,
+      displayValue: '0',
+      operator: null,
+      operandClicked: false
+    })
+  }
+  
+  changeSign() {
+    const { displayValue } = this.state
+    const newValue = parseFloat(displayValue) * -1
+    
+    this.setState({
+      displayValue: String(newValue)
+    })
+  }
+  
+  putDecimal() {
+    const { displayValue } = this.state
+    
+    if (!(/\./).test(displayValue)) {
+      this.setState({
+        displayValue: displayValue + '.',
+        operandClicked: false
+      })
+    }
+  }
+  
+  inputDigit(digit) {
+    const { displayValue, operandClicked } = this.state
+    
+    if (operandClicked) {
+      this.setState({
+        displayValue: String(digit),
+        operandClicked: false
+      })
+    } else {
+      if (displayValue == '0') {
+        this.setState({
+          displayValue: String(digit)
+        })
+      } else {
+        this.setState({
+          displayValue: displayValue + digit
+        })
+      }
+    }
+  }
+  
+  sqrt() {
+    const { value, displayValue } = this.state
+    const inputValue = parseFloat(displayValue)
+    const sqrtValue = Math.sqrt(inputValue)
+    
+    this.setState({
+      value: sqrtValue,
+      displayValue: String(sqrtValue),
+    })
+  }
+
+  doOperation(nextOperator) {    
+    const { value, displayValue, operator } = this.state
+    const inputValue = parseFloat(displayValue)
+    
+    if (value == null) {
+      this.setState({
+        value: inputValue
+      })
+    } else if (operator) {
+      const currentValue = 0 || value
+      const newValue = CalculatorOperations[operator](currentValue, inputValue)
+      
+      this.setState({
+        value: newValue,
+        displayValue: String(newValue)
+      })
+    }
+    
+    this.setState({
+      operandClicked: true,
+      operator: nextOperator
+    })
+  }
+  
+  render() {
+    const { displayValue } = this.state
+    
+    return (
+      <div className="calculator">
+        <div className="calculator-display">{displayValue}</div>
+        <div  className="calculator-display"></div>
+        <div className="keypad">
+          <div className="input-keys">
+            <div className="function-keys">
+              <CalculatorKey className="key-clear" onPress={() => this.clearAll()}>{'AC'}</CalculatorKey>
+              <CalculatorKey className="key-sqrt" onPress={() => this.sqrt()}>√</CalculatorKey>
+              <CalculatorKey className="key-exponent" onPress={() => this.doOperation('^')}>^</CalculatorKey>
+            </div>
+            <div className="digit-keys">
+              <CalculatorKey className="key-7" onPress={() => this.inputDigit(7)}>7</CalculatorKey>
+              <CalculatorKey className="key-8" onPress={() => this.inputDigit(8)}>8</CalculatorKey>
+              <CalculatorKey className="key-9" onPress={() => this.inputDigit(9)}>9</CalculatorKey>
+              <CalculatorKey className="key-4" onPress={() => this.inputDigit(4)}>4</CalculatorKey>
+              <CalculatorKey className="key-5" onPress={() => this.inputDigit(5)}>5</CalculatorKey>
+              <CalculatorKey className="key-6" onPress={() => this.inputDigit(6)}>6</CalculatorKey>
+              <CalculatorKey className="key-1" onPress={() => this.inputDigit(1)}>1</CalculatorKey>
+              <CalculatorKey className="key-2" onPress={() => this.inputDigit(2)}>2</CalculatorKey>
+              <CalculatorKey className="key-3" onPress={() => this.inputDigit(3)}>3</CalculatorKey>
+              <CalculatorKey className="key-0" onPress={() => this.inputDigit(0)}>0</CalculatorKey>
+              <CalculatorKey className="key-decimal" onPress={() => this.putDecimal()}>●</CalculatorKey>
+              <CalculatorKey className="key-sign" onPress={() => this.changeSign()}>(-)</CalculatorKey>
+            </div>
+          </div>
+          <div className="operator-keys">
+            <CalculatorKey className="key-divide" onPress={() => this.doOperation('/')}>÷</CalculatorKey>
+            <CalculatorKey className="key-multiply" onPress={() => this.doOperation('*')}>×</CalculatorKey>
+            <CalculatorKey className="key-subtract" onPress={() => this.doOperation('-')}>−</CalculatorKey>
+            <CalculatorKey className="key-add" onPress={() => this.doOperation('+')}>+</CalculatorKey>
+            <CalculatorKey className="key-equals" onPress={() => this.doOperation('=')}>=</CalculatorKey>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
+
+ReactDOM.render(
+  <Calculator/>,
+  document.getElementById('app')
+)
